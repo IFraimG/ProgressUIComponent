@@ -1,8 +1,9 @@
 
-class Progress extends HTMLElement {
+export class Progress extends HTMLElement {
     #normal = 0
     #animated = 0
     #isAnimatedOn = true
+    #isHide = false
 
     FPS = 60
 
@@ -18,7 +19,6 @@ class Progress extends HTMLElement {
     POS_X_LINE = this.POS_X_BACKGROUND + 50
     POS_Y_LINE = this.POS_Y_BACKGROUND + 50
 
-
     RADIUS = this.WIDTH_RECT * Math.sqrt(2) / 2
     LENGTH_ROUND_RECT = this.RADIUS * 2 * Math.PI
 
@@ -32,13 +32,9 @@ class Progress extends HTMLElement {
     constructor() {
         super()
         this.shadow = this.attachShadow({ mode: 'open' })
-
-        // this.normal = normal
-        // this.animated = animated
-        // this.hidden = hidden
     }   
 
-    static observedAttributes = ["value", "animated"];
+    static observedAttributes = ["value", "animated", "hide"];
 
     get value() {
         return this.#normal
@@ -48,10 +44,11 @@ class Progress extends HTMLElement {
         const numValue = parseInt(value)
         if (Number.isNaN(numValue)) {
             this.#normal = 0
+            this.#animated = 0
             throw new Error("Not Correct Input Type for attribute: value.")
         } else if (numValue > 100) {
             this.#normal = 100
-        } else if (numValue < 0) {
+        } else if (numValue <= 0) {
             this.#normal = 0
         } else {
             this.#normal = numValue
@@ -73,8 +70,15 @@ class Progress extends HTMLElement {
     }
 
     set isAnimatedOn(value) {
-        if (value == "true") this.#isAnimatedOn = true
-        else this.#isAnimatedOn = false
+        this.#isAnimatedOn = value
+    }
+
+    get isHideOn() {
+        return this.#isHide
+    }
+
+    set isHideOn(value) {
+        this.#isHide = value
     }
 
     connectedCallback() {
@@ -84,13 +88,11 @@ class Progress extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldVal, newVal) {
-        this.render()
-
         this.updateAttribute(name, newVal)
     }
 
     disconnectedCallback() {
-        if (this.interval != null) clearInterval(this.interval)
+        this.clearFullData()
     }
 
     render() {
@@ -99,9 +101,70 @@ class Progress extends HTMLElement {
 
     updateAttribute(name, newValue) {
         switch (name) {
-            case "value": this.value = newValue; break;
-            case "animated": this.isAnimatedOn = newValue; break;
+            case "value": this.updateValue(newValue); break;
+            case "animated": this.updateAnimatedOn(newValue); break;
+            case "hide": this.updateHideOn(newValue); break;
             default: break;
+        }
+    }
+
+    updateValue(newValue) {
+        if (this.interval != null) {
+            clearInterval(this.interval)
+            this.interval = null
+        }
+
+        if (this.ctx != null) {
+            this.clearProgressInfo()
+            this.enableBackground()
+        }
+
+        this.value = newValue
+
+        if (this.ctx != null) {
+            this.animateLoad()
+        }
+    }
+
+    updateAnimatedOn(newValue) {
+        if (newValue == "true") {
+            if (!this.#isAnimatedOn && this.ctx != null) {
+                this.isAnimatedOn = true
+                this.animateLoad()
+            }
+        } else if (newValue == "false") {
+            if (this.interval != null) {
+                clearInterval(this.interval)
+                this.interval = null
+            }
+            this.isAnimatedOn = false
+
+        } else {
+            throw new Error("Not correct value for attribute of animated! Only available true/false")
+        }
+    }
+
+    updateHideOn(newValue) {
+        if (newValue == "true") {
+            this.isHideOn = true
+
+            if (this.interval != null) {
+                clearInterval(this.interval)
+                this.interval = null
+            }
+            
+            if (this.canvas != null) {
+                this.canvas.style.display = "none"
+            }
+        } else if (newValue == "false") {
+            this.isHideOn = false
+
+            if (this.canvas != null) {
+                this.canvas.style.display = "block"
+                this.animateLoad()
+            }
+        } else {
+            throw new Error("Not correct value for attribute of hide! Only available true/false")
         }
     }
 
@@ -133,11 +196,10 @@ class Progress extends HTMLElement {
 
     animateLoad() {
         if (this.#animated > 0) this.drawRoundLine(0)
-        if (this.isAnimatedOn) {
+
+        if (this.#isAnimatedOn) {
             this.interval = setInterval(this.drawScroll.bind(this), 1000 / this.FPS);
-        } else {
-            if (this.interval != null) clearInterval(this.interval)
-        }
+        } 
     }
 
     drawScroll() {
@@ -150,8 +212,6 @@ class Progress extends HTMLElement {
         this.drawRoundLine(START_STEP)
 
         this.#animated += this.PROGRESS_STEP
-
-        // requestAnimationFrame(this.drawScroll().bind(this))
     }
 
     drawRoundLine(START_STEP) {
@@ -173,10 +233,26 @@ class Progress extends HTMLElement {
         
         this.#animated = 0
     }
+
+    clearFullData() {
+        if (this.interval != null) {
+            clearInterval(this.interval)
+            this.interval = null
+        }
+
+        this.ctx.beginPath();
+        this.ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+        this.ctx.closePath();
+        
+        this.ctx = null
+        this.canvas = null
+        this.#normal = 0
+        this.#animated = 0
+        this.#isAnimatedOn = true
+    }
 }  
 
 
-// export const registerProgressComponent = () => {
-//     customElements.define("custom-progress", Progress)
-// }
-customElements.define("custom-progress", Progress)
+export const registerProgressComponent = () => {
+    customElements.define("custom-progress", Progress)
+}
