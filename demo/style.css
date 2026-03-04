@@ -45,6 +45,11 @@ label {
     flex-wrap: wrap;
 }
 
+.main__title {
+    font-size: 24px;
+    font-weight: 500;
+}
+
 .switcher-item {
     position: relative;
     display: flex;
@@ -57,7 +62,7 @@ label {
     height: 35px;
 }
 
-  .slider {
+.slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -67,7 +72,7 @@ label {
     background-color: #DAE6ED;
     transition: 0.4s;
     border-radius: 34px;
-  }
+}
 
 .slider::before {
     content: "";
@@ -112,9 +117,8 @@ label {
     font-weight: 600;
 }
 
-.main__title {
-    font-size: 24px;
-    font-weight: 500;
+.settings-input__wrapper input::placeholder {
+    color: rgba(0, 0, 0, .5)
 }
 
 .settings-item {
@@ -123,7 +127,6 @@ label {
     gap: 25px;
     flex-wrap: nowrap;
     margin-top: 20px;
-
 }
 
 .settings-item:first-child {
@@ -133,4 +136,12 @@ label {
 .settings-item label {
     font-weight: 500;
     font-size: 18px;
+}
+
+@media (max-width: 449px) {
+    .main__content {
+        flex-direction: column;
+        align-items: center;
+        gap: 50px 0px; 
+    }
 }
