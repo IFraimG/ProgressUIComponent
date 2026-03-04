@@ -4,11 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Demo Page</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-    <custom-progress value="30"></custom-progress>
+    <div class="main__wrapper">
+        <div class="main__container">
+            <div class="main">
+                <h1 class="main__title">Progress</h1>
+                <div class="main__content">
+                    <custom-progress value="30" animated="true"></custom-progress>
+                    <div class="main__settings">
+                        <div class="settings-input__wrapper settings-item">
+                            <input id="normal" type="number">
+                            <label for="normal">Value</label>
+                        </div>
+                        <div class="settings-item">
+                            <div class="switcher__wrapper">
+                                <label class="switcher-item">
+                                <input id="animate" class="switcher" type="checkbox" />
+                                <span class="slider"></span>
+                                </label>
+                            </div>
+                            <label for="animate">Animate</label>
+                        </div>
+                        
+                        <div class="settings-item">
+                            <div class="switcher__wrapper">
+                                <label class="switcher-item">
+                                    <input id="hide" class="switcher" type="checkbox" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <label for="hide">Hide</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="./ProgressApi.js"></script>
 <script src="./Progress.js"></script>
- <!-- УТОЧНИТЬ НАСЧЕТ WEBPACK -->
 <!-- <script src="./index.js" type="module"></script> -->
 </body>
 </html>

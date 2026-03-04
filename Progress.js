@@ -2,17 +2,22 @@
 class Progress extends HTMLElement {
     #normal = 0
     #animated = 0
+    #isAnimatedOn = true
 
-    CANVAS_WIDTH = 300
-    CANVAS_HEIGHT = 300
+    FPS = 60
 
     WIDTH_RECT = 100
     HEIGHT_RECT = 100
 
-    FPS = 60
+    CANVAS_WIDTH = 150
+    CANVAS_HEIGHT = 150
 
-    POS_X = 50
-    POS_Y = 50
+    POS_X_BACKGROUND = 75
+    POS_Y_BACKGROUND = 25
+
+    POS_X_LINE = this.POS_X_BACKGROUND + 50
+    POS_Y_LINE = this.POS_Y_BACKGROUND + 50
+
 
     RADIUS = this.WIDTH_RECT * Math.sqrt(2) / 2
     LENGTH_ROUND_RECT = this.RADIUS * 2 * Math.PI
@@ -36,35 +41,41 @@ class Progress extends HTMLElement {
     static observedAttributes = ["value", "animated"];
 
     get value() {
-        return this.getAttribute("value")
+        return this.#normal
     }
 
     set value(value) {
-        const newValue = parseInt(value)
-        if (typeof newValue != "number" && !Number.isNaN(newValue)) {
+        const numValue = parseInt(value)
+        if (Number.isNaN(numValue)) {
             this.#normal = 0
-            throw new Error("Not Correct Input Type for animated attribute!")
-        } else if (newValue > 100) {
+            throw new Error("Not Correct Input Type for attribute: value.")
+        } else if (numValue > 100) {
             this.#normal = 100
-        } else if (newValue < 0) {
+        } else if (numValue < 0) {
             this.#normal = 0
         } else {
-            this.#normal = value
+            this.#normal = numValue
         }
+
+        this.#animated = (2 / 100) * this.#normal
     }
 
-    // get animated() {
-    //     return this.getAttribute("animated")
-    // }
+    get animated() {
+        return this.#animated
+    }
 
-    // set animated(value) {
-    //     if (typeof value != "number" && !Number.isNaN(value)) {
-    //         this.#animated = 0
-    //         throw new Error("Not Correct Input Type for animated attribute!")
-    //     }
+    set animated(value) {
+        this.#animated = value
+    }
 
-    //     this.#animated = value
-    // }
+    get isAnimatedOn() {
+        return this.#isAnimatedOn
+    }
+
+    set isAnimatedOn(value) {
+        if (value == "true") this.#isAnimatedOn = true
+        else this.#isAnimatedOn = false
+    }
 
     connectedCallback() {
         this.render()
@@ -76,11 +87,10 @@ class Progress extends HTMLElement {
         this.render()
 
         this.updateAttribute(name, newVal)
-        console.log(name, oldVal, newVal)
     }
 
     disconnectedCallback() {
-        clearInterval(this.interval)
+        if (this.interval != null) clearInterval(this.interval)
     }
 
     render() {
@@ -90,7 +100,7 @@ class Progress extends HTMLElement {
     updateAttribute(name, newValue) {
         switch (name) {
             case "value": this.value = newValue; break;
-            case "animated": this.animated = newValue; break;
+            case "animated": this.isAnimatedOn = newValue; break;
             default: break;
         }
     }
@@ -116,13 +126,18 @@ class Progress extends HTMLElement {
         this.ctx.lineWidth = this.PROGRESS_LINE_WIDTH
         this.ctx.strokeStyle = this.COLOR_BACKGROUND
         
-        this.ctx.roundRect(this.POS_X, this.POS_Y, this.WIDTH_RECT, this.HEIGHT_RECT, 50)
+        this.ctx.roundRect(this.POS_X_BACKGROUND, this.POS_Y_BACKGROUND, this.WIDTH_RECT, this.HEIGHT_RECT, 50)
         
         this.ctx.stroke()
     }
 
     animateLoad() {
-        this.interval = setInterval(this.drawScroll.bind(this), 1000 / this.FPS);
+        if (this.#animated > 0) this.drawRoundLine(0)
+        if (this.isAnimatedOn) {
+            this.interval = setInterval(this.drawScroll.bind(this), 1000 / this.FPS);
+        } else {
+            if (this.interval != null) clearInterval(this.interval)
+        }
     }
 
     drawScroll() {
@@ -131,22 +146,24 @@ class Progress extends HTMLElement {
             this.enableBackground()
         }
 
-        // ______
+        const START_STEP = this.#animated * Math.PI
+        this.drawRoundLine(START_STEP)
 
+        this.#animated += this.PROGRESS_STEP
+
+        // requestAnimationFrame(this.drawScroll().bind(this))
+    }
+
+    drawRoundLine(START_STEP) {
         this.ctx.stroke()
         this.ctx.beginPath()
         this.ctx.lineWidth = this.PROGRESS_LINE_WIDTH
         this.ctx.strokeStyle = this.COLOR_PROGRESS
         
-        const PREV_STEP = this.#animated * Math.PI
         const NEXT_STEP = (this.#animated + this.PROGRESS_STEP) * Math.PI
 
-        // this.ctx.arc(100,100, 50, 0.1 * Math.PI, 0.2 * Math.PI, false)
-        this.ctx.arc(this.POS_X * 2, this.POS_Y * 2, 50, PREV_STEP, NEXT_STEP, false)
+        this.ctx.arc(this.POS_X_LINE, this.POS_Y_LINE, 50, START_STEP, NEXT_STEP, false)
         this.ctx.stroke()
-
-        this.#animated += this.PROGRESS_STEP
-        // requestAnimationFrame(this.drawScroll().bind(this))
     }
 
     clearProgressInfo() {
