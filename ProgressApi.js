@@ -23,4 +23,16 @@ export default class ProgressAPI {
     updateHideOn(isHideOn) {
         this.element.setAttribute("hide", isHideOn)
     }
+
+    getHide() {
+        return this.element.isHideOn
+    }
+
+    getAnimatedOn() {
+        return this.element.isAnimatedOn
+    }
+
+    getValue() {
+        return this.element.value
+    }
 }

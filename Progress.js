@@ -1,33 +1,44 @@
 
-export class Progress extends HTMLElement {
+class Progress extends HTMLElement {
     #normal = 0
     #animated = 0
     #isAnimatedOn = true
     #isHide = false
 
-    FPS = 60
+    static settings = {
+        FPS: 60,
+        WIDTH_RECT: 100,
+        HEIGHT_RECT: 100,
+    
+        CANVAS_WIDTH: 150,
+        CANVAS_HEIGHT: 150,
+    
+        POS_X_BACKGROUND: 75,
+        POS_Y_BACKGROUND: 25,
+    
+        get POS_X_LINE() {
+            return this.POS_X_BACKGROUND + 50
+        },
 
-    WIDTH_RECT = 100
-    HEIGHT_RECT = 100
+        get POS_Y_LINE() {
+            return this.POS_Y_BACKGROUND + 50
+        },
 
-    CANVAS_WIDTH = 150
-    CANVAS_HEIGHT = 150
+        get RADIUS() {
+            return this.WIDTH_RECT * Math.sqrt(2) / 2
+        },
 
-    POS_X_BACKGROUND = 75
-    POS_Y_BACKGROUND = 25
-
-    POS_X_LINE = this.POS_X_BACKGROUND + 50
-    POS_Y_LINE = this.POS_Y_BACKGROUND + 50
-
-    RADIUS = this.WIDTH_RECT * Math.sqrt(2) / 2
-    LENGTH_ROUND_RECT = this.RADIUS * 2 * Math.PI
-
-    COLOR_BACKGROUND = "#EAF0F7"
-    COLOR_PROGRESS = "#015DFF"
-
-    PROGRESS_LINE_WIDTH = 10
-
-    PROGRESS_STEP = 0.01
+        get LENGTH_ROUND_RECT() {
+            return this.RADIUS * 2 * Math.PI
+        },
+    
+        COLOR_BACKGROUND: "#EAF0F7",
+        COLOR_PROGRESS: "#015DFF",
+    
+        PROGRESS_LINE_WIDTH: 10,
+    
+        PROGRESS_STEP: 0.01
+    }
 
     constructor() {
         super()
@@ -46,7 +57,7 @@ export class Progress extends HTMLElement {
             this.#normal = 0
             this.#animated = 0
             throw new Error("Not Correct Input Type for attribute: value.")
-        } else if (numValue > 100) {
+        } else if (numValue >= 100) {
             this.#normal = 100
         } else if (numValue <= 0) {
             this.#normal = 0
@@ -55,14 +66,6 @@ export class Progress extends HTMLElement {
         }
 
         this.#animated = (2 / 100) * this.#normal
-    }
-
-    get animated() {
-        return this.#animated
-    }
-
-    set animated(value) {
-        this.#animated = value
     }
 
     get isAnimatedOn() {
@@ -104,15 +107,12 @@ export class Progress extends HTMLElement {
             case "value": this.updateValue(newValue); break;
             case "animated": this.updateAnimatedOn(newValue); break;
             case "hide": this.updateHideOn(newValue); break;
-            default: break;
+            default: null;
         }
     }
 
     updateValue(newValue) {
-        if (this.interval != null) {
-            clearInterval(this.interval)
-            this.interval = null
-        }
+        this.clearAnimation()
 
         if (this.ctx != null) {
             this.clearProgressInfo()
@@ -133,10 +133,8 @@ export class Progress extends HTMLElement {
                 this.animateLoad()
             }
         } else if (newValue == "false") {
-            if (this.interval != null) {
-                clearInterval(this.interval)
-                this.interval = null
-            }
+            this.clearAnimation()
+            
             this.isAnimatedOn = false
 
         } else {
@@ -147,11 +145,7 @@ export class Progress extends HTMLElement {
     updateHideOn(newValue) {
         if (newValue == "true") {
             this.isHideOn = true
-
-            if (this.interval != null) {
-                clearInterval(this.interval)
-                this.interval = null
-            }
+            this.clearAnimation()
             
             if (this.canvas != null) {
                 this.canvas.style.display = "none"
@@ -161,6 +155,7 @@ export class Progress extends HTMLElement {
 
             if (this.canvas != null) {
                 this.canvas.style.display = "block"
+
                 this.animateLoad()
             }
         } else {
@@ -170,8 +165,8 @@ export class Progress extends HTMLElement {
 
     configurateCanvas() {
         this.canvas = this.shadow.getElementById("progress")
-        this.canvas.width = this.CANVAS_WIDTH
-        this.canvas.height = this.CANVAS_HEIGHT
+        this.canvas.width = Progress.settings.CANVAS_WIDTH
+        this.canvas.height = Progress.settings.CANVAS_HEIGHT
 
         this.ctx = this.canvas.getContext("2d")
 
@@ -186,10 +181,10 @@ export class Progress extends HTMLElement {
     enableBackground() {
         this.ctx.beginPath()
         
-        this.ctx.lineWidth = this.PROGRESS_LINE_WIDTH
-        this.ctx.strokeStyle = this.COLOR_BACKGROUND
+        this.ctx.lineWidth = Progress.settings.PROGRESS_LINE_WIDTH
+        this.ctx.strokeStyle = Progress.settings.COLOR_BACKGROUND
         
-        this.ctx.roundRect(this.POS_X_BACKGROUND, this.POS_Y_BACKGROUND, this.WIDTH_RECT, this.HEIGHT_RECT, 50)
+        this.ctx.roundRect(Progress.settings.POS_X_BACKGROUND, Progress.settings.POS_Y_BACKGROUND, Progress.settings.WIDTH_RECT, Progress.settings.HEIGHT_RECT, 50)
         
         this.ctx.stroke()
     }
@@ -198,11 +193,11 @@ export class Progress extends HTMLElement {
         if (this.#animated > 0) this.drawRoundLine(0)
 
         if (this.#isAnimatedOn) {
-            this.interval = setInterval(this.drawScroll.bind(this), 1000 / this.FPS);
+            this.interval = setInterval(this.drawMove.bind(this), 1000 / Progress.settings.FPS);
         } 
     }
 
-    drawScroll() {
+    drawMove() {
         if (this.#animated >= 2) {
             this.clearProgressInfo()
             this.enableBackground()
@@ -211,37 +206,41 @@ export class Progress extends HTMLElement {
         const START_STEP = this.#animated * Math.PI
         this.drawRoundLine(START_STEP)
 
-        this.#animated += this.PROGRESS_STEP
+        this.#animated += Progress.settings.PROGRESS_STEP
     }
 
     drawRoundLine(START_STEP) {
         this.ctx.stroke()
         this.ctx.beginPath()
-        this.ctx.lineWidth = this.PROGRESS_LINE_WIDTH
-        this.ctx.strokeStyle = this.COLOR_PROGRESS
+        this.ctx.lineWidth = Progress.settings.PROGRESS_LINE_WIDTH
+        this.ctx.strokeStyle = Progress.settings.COLOR_PROGRESS
         
-        const NEXT_STEP = (this.#animated + this.PROGRESS_STEP) * Math.PI
+        const NEXT_STEP = (this.#animated + Progress.settings.PROGRESS_STEP) * Math.PI
 
-        this.ctx.arc(this.POS_X_LINE, this.POS_Y_LINE, 50, START_STEP, NEXT_STEP, false)
+        this.ctx.arc(Progress.settings.POS_X_LINE, Progress.settings.POS_Y_LINE, 50, START_STEP, NEXT_STEP, false)
         this.ctx.stroke()
+    }
+
+    clearAnimation() {
+        if (this.interval != null) {
+            clearInterval(this.interval)
+            this.interval = null
+        }
     }
 
     clearProgressInfo() {
         this.ctx.beginPath();
-        this.ctx.clearRect(0, 0, this.LENGTH_ROUND_RECT, this.LENGTH_ROUND_RECT);
+        this.ctx.clearRect(0, 0, Progress.settings.LENGTH_ROUND_RECT, Progress.settings.LENGTH_ROUND_RECT);
         this.ctx.closePath();
         
         this.#animated = 0
     }
 
     clearFullData() {
-        if (this.interval != null) {
-            clearInterval(this.interval)
-            this.interval = null
-        }
+        this.clearAnimation()
 
         this.ctx.beginPath();
-        this.ctx.clearRect(0, 0, this.CANVAS_WIDTH, this.CANVAS_HEIGHT);
+        this.ctx.clearRect(0, 0, Progress.settings.CANVAS_WIDTH, Progress.settings.CANVAS_HEIGHT);
         this.ctx.closePath();
         
         this.ctx = null
@@ -250,6 +249,7 @@ export class Progress extends HTMLElement {
         this.#animated = 0
         this.#isAnimatedOn = true
     }
+
 }  
 
 
