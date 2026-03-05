@@ -1,19 +1,30 @@
 
 ## Разработка прототипа блока Progress для использования в мобильных web-приложениях.
 
-Отображение процесса выполнения процессов и их прогресса выполнения.
-
+- Отображение процесса выполнения процессов и их прогресса выполнения.
+- Компонент разрабатывался с использованием технологий Canvas API и реализацией Shadow DOM через нативное API для работы с Web Components, не требующее подключения сторонних библиотек и фреймворков.
+- Использование Canvas позволило сделать Progress независимым от CSS стилей и html документов.
+- Использование requestAnimationFrame() позволяет эффективно прогружать компонент.
+- Пользователь компонента имеет возможность получить доступ к компоненту всего лишь импортом одной папки без сторонних зависимостей. 
+- Пользователю компонента достаточно импортировать в свой .js файл ProgressApi.js для регистрации компонента и подключить элемент в своем .html файле. (Подробнее далее)
+- Пользователь компонента имеет возможность непосредственно управлять состоянием процента загрузки, наличия анимации, скрытия/отображения.
 ____
 
-## Необходимые шаги для подключения компонента Progress в другой проект
+## Шаги для подключения компонента Progress в другой проект
 
 1. Импортировать папку `lib/`
-2. Вставить в код файла формата .html: (в атрибутах указаны значения по умолчанию)
+2. Вставить в код файла формата .html: (в атрибутах указаны необязательные значения по умолчанию)
 ``` html
 <custom-progress id="c-pr" value="0" animated="true" hide="false"></custom-progress>
 ```
+Возможные атрибуты:
+- value - указание положения прогресса от 0 до 100 в %. По умолчанию - 0.
+- animated - переключение анимации прокрутки. По умолчанию - true.
+- hide - сокрытие и отображение Progress. По умолчанию - false.
 3. Получить элемент обращением к DOM в JavaScript файле: (в options указаны значения по умолчанию)
 ``` javascript
+// index.js
+
 import ProgressAPI from "/lib/ProgressApi.js"
 
 const elementProgress = document.getElementById("c-pr")
@@ -24,6 +35,13 @@ const progressAPI = new ProgressAPI(elementProgress, options)
 ```
 4. Управление компонентом Progress осуществляется через данный экземпляр: (пример)
 ``` javascript
+// index.js
+
+// index.html
+//  <input id="animate" type="checkbox" />
+//  <input id="normal" type="number">
+//  <input id="hide" type="checkbox" />
+
 const normalNumber = document.getElementById("normal")
 const animateCheckbox = document.getElementById("animate")
 const hideCheckbox = document.getElementById("hide")
@@ -80,3 +98,4 @@ ____
     <img src="demo/assets/2.png" alt="Alt text for the image" width="40%" height="700">
     <img src="demo/assets/1.png" alt="Alt text for the image" width="40%" height="600">
 </div>
+
