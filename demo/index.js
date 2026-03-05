@@ -10,6 +10,6 @@ const templateOptions = { value: 80, animated: animateCheckbox.checked, hide: hi
 
 const progressAPI = new ProgressAPI(elementProgress, templateOptions)
 
-// normalNumber.addEventListener("change", event => progressAPI.updateValue(event.target.value))
-// animateCheckbox.addEventListener("change", event => progressAPI.updateAnimatedOn(event.target.checked))
-// hideCheckbox.addEventListener("change", event => progressAPI.updateHideOn(event.target.checked))
+normalNumber.addEventListener("change", event => progressAPI.updateValue(event.target.value))
+animateCheckbox.addEventListener("change", event => progressAPI.updateAnimatedOn(event.target.checked))
+hideCheckbox.addEventListener("change", event => progressAPI.updateHideOn(event.target.checked))
